@@ -12,7 +12,7 @@ LENGTH = 17.0    # mm
 WIDTH = 17.0       # mm
 THICKNESS = 3.0     # mm
 
-#Fin Dimensions
+#Fin DimensionsI
 FIN_QUANITY = 7
 FIN_THICKNESS = 1.2
 FIN_HEIGHT = 6.0
