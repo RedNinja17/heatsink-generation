@@ -1,60 +1,48 @@
-# Author: trexhaydor
-# Description: Basic script to convert SDF geometries into .stl format
+from sdf import *
+import pyvista as pv
+pv.global_theme.allow_empty_mesh = True #Allows empty meshes to be plotted
 
-from sdf import * 
+NAME = "heatsinkmk1"
 
-base_length = 60     # X dimension
-base_width = 40      # Y dimension
-base_height = 5      # Z thickness
+#SAMPLES = 2**20 
+STEP = 0.2
 
-fin_height = 25
-fin_width = 2
-fin_spacing = 5
-fin_length = 35
+#Base dimensions
+LENGTH = 17.0    # mm
+WIDTH = 17.0       # mm
+THICKNESS = 3.0     # mm
 
-base = box(
-    base_length,
-    base_width,
-    base_height
-)
-
-
-# Center the base around origin
-base = base.translate(Z * (base_height / 2))
+#Fin DimensionsI
+FIN_QUANITY = 7
+FIN_THICKNESS = 1.2
+FIN_HEIGHT = 6.0
+FIN_SPACING = (LENGTH - (FIN_QUANITY * FIN_THICKNESS)) / (FIN_QUANITY - 1) #mm
 
 
-fins = []
-
-num_fins = int(base_length / fin_spacing)
-
-for i in range(num_fins):
-
-    x = (
-        -base_length / 2
-        + i * fin_spacing
-    )
-
-    fin = box(
-        fin_width,
-        fin_length,
-        fin_height
-    )
-
-    # Move fin above base
-    fin = fin.translate(
-        X * x
-        + Z * (base_height + fin_height / 2)
-    )
-
-    fins.append(fin)
-
-heatsink = base
-
-for fin in fins:
-    heatsink = heatsink | fin
+#===================DESIGN BOX===================
 
 
-heatsink.save(
-    "heatsink_example_1.stl",
-    samples=2**18
-)
+f = box((LENGTH, WIDTH, THICKNESS)) #Centered at (0,0,0)
+
+fin = box((FIN_THICKNESS, WIDTH, FIN_HEIGHT)) 
+
+z_offset = THICKNESS / 2 + FIN_HEIGHT / 2 #Offset to place fins on top of base
+
+start_x = -LENGTH / 2 + FIN_THICKNESS / 2  
+
+for i in range(FIN_QUANITY):
+    x_offset = start_x+ i * (FIN_THICKNESS + FIN_SPACING) #Offset to place fins along base
+
+    fin_postioned = fin.translate((x_offset, 0, z_offset)) #Translate fin to correct position
+    f = f | fin_postioned #Add fin to base
+
+
+#===================SAVE, READ, & PLOT DESIGN===================#
+
+f.save(NAME + ".stl", STEP, sparse=False) # Used step instead of sample
+
+mesh = pv.read(NAME + ".stl")
+p = pv.Plotter()
+
+p.add_mesh(mesh, color="lightgray", show_edges=False)
+p.show()
